@@ -15,7 +15,7 @@ Live test on the board running 64-bit multiplication (`opcode = C`, `0xFFFF_FFFF
 ## Why Pipelining & Registering?
 
 Putting register stages around the ALU in `top_alu` does two useful things:
-- **Breaks up long paths:** A 32-bit ALU with wide arithmetic, shifts, and comparisons has a fairly long combinational path on its own. Registering inputs and outputs keeps the critical path clean so it can close timing at 125 MHz (`8.000 ns` period) with positive slack.
+- **Breaks up long paths:** A 32-bit ALU with wide arithmetic, shifts, and comparisons has a fairly long combinational path on its own. Registering inputs and outputs so it can close timing at 125 MHz (`8.000 ns` period) with positive slack.
 - **Clean VIO probing:** Driving `a_reg`, `b_reg`, and `opcode_reg` synchronously on `posedge clk` and capturing `x_reg` and `y_reg` makes reading and driving signals through Vivado's VIO core much more predictable.
 
 ## Opcodes
@@ -41,9 +41,8 @@ Putting register stages around the ALU in `top_alu` does two useful things:
 
 ## Tricky Bits & Lessons Learned
 
-- **Closing timing at 125 MHz:** Getting timing closure at `8.000 ns` on the Zynq-7000 wasn't instant—it took registering I/O cleanly, keeping shift amounts masked to 5 bits (`b[4:0]`) for 32-bit shifts, and leaning on Vivado implementation strategies (`Performance_Explore`) to clear tight setup slack.
-- **Splitting wide results across `x` and `y`:** Since the ALU outputs two 32-bit buses (`x` and `y`), keeping track of where carry-out (`y[0]`) and the upper 32 bits of multiplication (`y`) land—versus single-result ops that only use `x`—was super important during VIO checks.
-- **VIO + JTAG bring-up:** Wiring up `vio_0`, connecting `dbg_hub` to the clock cleanly in `.xdc`, and checking real values on hardware after simulation always brings out small details you don't notice in a pure testbench.
+- **Closing timing at 125 MHz:** Getting timing closure at `8.000 ns` on the Zynq-7000 wasn't instant, it took registering I/O cleanly, keeping shift amounts masked to 5 bits (`b[4:0]`) for 32-bit shifts, and leaning on Vivado implementation strategies (`Performance_Explore`) to clear tight setup slack.
+- **Splitting wide results across `x` and `y`:** Since the ALU outputs two 32-bit buses (`x` and `y`), keeping track of where carry-out (`y[0]`) and the upper 32 bits of multiplication (`y`) land—versus single-result ops that only use `x`, was super important during VIO checks.
 
 ## Repo Layout
 
